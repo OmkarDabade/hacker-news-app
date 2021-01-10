@@ -2,16 +2,7 @@
 
 
 ## Images
-<img src = "Images/HomePage.png" width=200 >
-
-<!-- ## Options -->
-<img src = "Images/Options.png" width=200>
-
-<!-- ## History Page -->
-<img src = "Images/History.png" width=200>
-
-<!-- ## Users Favourites -->
-<img src = "Images/Favourites.png" width=200>
+<img src = "Images/HomePage.png" width=200 > <img src = "Images/Options.png" width=200> <img src = "Images/History.png" width=200> <img src = "Images/Favourites.png" width=200>
 
 ---
 
