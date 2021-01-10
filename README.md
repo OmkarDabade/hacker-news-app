@@ -1,13 +1,23 @@
 # Hacker-News-App
 
-# HomePage
-![HomePage](https://user-images.githubusercontent.com/63945042/104117272-f6005d80-5345-11eb-8fd1-ae9765808d96.png)
 
-# Options
-![Options](https://user-images.githubusercontent.com/63945042/104117274-fb5da800-5345-11eb-8627-6fd2b9f305b6.png)
+## Images
+<img src = "Images/HomePage.png" width=200 >
 
-# History Page
-![History](https://user-images.githubusercontent.com/63945042/104117276-fe589880-5345-11eb-8e72-31bc7cf65427.png)
+<!-- ## Options -->
+<img src = "Images/Options.png" width=200>
 
-# Users Favourties
-![Favourites](https://user-images.githubusercontent.com/63945042/104117278-0284b600-5346-11eb-8c08-856627a9e6b6.png)
+<!-- ## History Page -->
+<img src = "Images/History.png" width=200>
+
+<!-- ## Users Favourites -->
+<img src = "Images/Favourites.png" width=200>
+
+---
+
+## Description
+- This app uses hacker news api to fetch top stories
+- When user clicks on news, it is opened in browser pf device
+- History is saved in 'History Page'
+- User can mark stories as favourites which in displayed in 'Favourites Page'
+- User can switch between this Pages using floatin action button at bottom right(Speed Dial)
