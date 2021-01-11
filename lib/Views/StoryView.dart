@@ -63,11 +63,17 @@ class StoryView extends GetView<StoryViewController> {
         child: GetBuilder<StoryViewController>(
             id: 'storiesList',
             builder: (c) => RefreshIndicator(
-                  // refresh only when topStories page is being rendered
-                  onRefresh: controller.pageTitle == PageTitle.topStories
-                      ? controller.reFetchStories
+                  notificationPredicate: (notification) {
+                    if (controller.pageTitle == PageTitle.topStories)
+                      // refresh only when topStories page is being rendered
+                      return true;
+                    else
                       // if other page is being rendered then dont do anything
-                      : () async {},
+                      return false;
+                  },
+                  onRefresh: controller.reFetchStories,
+                  color: Colors.green,
+                  backgroundColor: Colors.white24,
                   child: controller.isLoading
                       // if data is being loaded show circular progress indicator
                       ? const Center(
@@ -75,33 +81,39 @@ class StoryView extends GetView<StoryViewController> {
                               valueColor:
                                   AlwaysStoppedAnimation<Color>(Colors.green)),
                         )
-                      // if some error with storage service, display the error
+                      // Deal with errors related to storage and favourites page
                       : (controller.isStorageError &&
                               controller.pageTitle == PageTitle.favourites)
-                          ? Center(
-                              child: Text(controller.storageErrorMessage,
-                                  style: TextStyle(fontSize: 17.0)),
+                          ? Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Center(
+                                child: Text(controller.storageErrorMessage,
+                                    style: TextStyle(fontSize: 17.0)),
+                              ),
                             )
-                          // if there is no history display the message to user
+                          // Deal with errors related to history and history page
                           : (controller.pageTitle == PageTitle.history &&
                                   controller.isHistoryAvailable)
-                              ? Center(
-                                  child: Text(controller.noHistoryMessage,
-                                      style: TextStyle(fontSize: 17.0)),
+                              ? Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Center(
+                                    child: Text(controller.noHistoryMessage,
+                                        style: TextStyle(fontSize: 17.0)),
+                                  ),
                                 )
-                              // for other errors display the message to user
-                              : (controller.isError &&
-                                      controller.pageTitle !=
-                                          PageTitle.favourites)
+                              // Deal with errors related to API and topStories page
+                              : (controller.isAPIServiceError &&
+                                      controller.pageTitle ==
+                                          PageTitle.topStories)
                                   //use scrollView so that we can refresh the content
                                   ? SingleChildScrollView(
                                       physics: AlwaysScrollableScrollPhysics(),
                                       child: Container(
-                                        height: Get.height - 50.0,
+                                        height: Get.height - 80.0,
                                         width: Get.width,
                                         child: Center(
-                                            child:
-                                                Text(controller.errorMessage)),
+                                            child: Text(
+                                                controller.apiErrorMessage)),
                                       ),
                                     )
                                   // display the content ie Stories
@@ -195,7 +207,7 @@ class StoryView extends GetView<StoryViewController> {
         margin: const EdgeInsets.symmetric(horizontal: 8.0),
         decoration: BoxDecoration(
           border: Border.all(
-            color: Colors.green[200],
+            color: Colors.white24,
             width: 0.8,
           ),
           borderRadius: BorderRadius.circular(15.0),

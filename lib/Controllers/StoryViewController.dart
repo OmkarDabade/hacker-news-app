@@ -8,22 +8,26 @@ import 'package:url_launcher/url_launcher.dart';
 
 class StoryViewController extends GetxController {
   // Variables to control UI
-  bool _isLoading, _isError, _showLazyLoading;
-  String _errorMessage;
+  bool _isLoading, _showLazyLoading;
 
   // Services
   APIService _apiService = Get.find<APIService>();
   StorageService _storageService = Get.find<StorageService>();
 
   // Custom getters to control UI
-  bool get isError => _isError || _apiService.isError;
-  bool get isLoading => _isLoading || _storageService.isLoading;
   bool get showLazyLoading => _showLazyLoading;
+
+  // bool get isError => _isError;
+  bool get isLoading => _isLoading || _storageService.isLoading;
+
   bool get isHistoryAvailable => _historyItems.isEmpty;
   bool get isStorageError => _storageService.isError;
+  bool get isAPIServiceError => _apiService.isError;
 
-  String get errorMessage => _errorMessage ?? _apiService.errorMessage;
+  // String get errorMessage => _errorMessage;
   String get storageErrorMessage => _storageService.errorMessage;
+  String get apiErrorMessage => _apiService.errorMessage;
+
   String get noHistoryMessage =>
       'No websites visited by you\nPlease visit few websites then check history in this page.';
 
@@ -48,7 +52,6 @@ class StoryViewController extends GetxController {
 
     // Initialise UI controlling variables
     _isLoading = true;
-    _isError = false;
     _showLazyLoading = false;
 
     _historyItems = [];
@@ -123,7 +126,6 @@ class StoryViewController extends GetxController {
 
   void loadNewStories() async {
     _isLoading = true;
-    _isError = false;
 
     _pageTitle = PageTitle.topStories;
     update(['pageTitle', 'storiesList']);

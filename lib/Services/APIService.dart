@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -39,8 +40,16 @@ class APIService extends GetxService {
     if (reload) {
       _lastIdCount = 0;
       try {
-        // fetch items from internet
-        _response = await http.get(Constants.fetchtopStoriesURL);
+        // fetch items from API
+        _response = await http
+            .get(Constants.fetchtopStoriesURL)
+            .timeout(const Duration(seconds: 10));
+
+        _storyIds = jsonDecode(_response.body);
+      } on TimeoutException {
+        _isError = true;
+        _errorMessage = 'Server timedout';
+        return [];
       } on SocketException {
         _isError = true;
         _errorMessage = 'There are issues with connectivity';
@@ -57,10 +66,10 @@ class APIService extends GetxService {
         return Future.wait<Item>(
             _storyIds.take(count).map((id) => _fetchItemFromAPI(id: '$id')),
             eagerError: true);
-      } on Error catch (e) {
-        _isError = true;
-        _errorMessage = 'Caught Some Error';
-        return Future.error(e);
+      } on Error {
+        if (!_isError) _isError = true;
+        if (_errorMessage == '') _errorMessage = 'Caught Some Error';
+        return [];
       }
     } else {
       // add this items to previously fetched items and increase count value
@@ -72,17 +81,19 @@ class APIService extends GetxService {
                 .take(count)
                 .map((id) => _fetchItemFromAPI(id: '$id')),
             eagerError: true);
-      } on Error catch (e) {
-        _isError = true;
-        _errorMessage = 'Caught Some Error';
-        return Future.error(e);
+      } on Error {
+        if (!_isError) _isError = true;
+        if (_errorMessage == '') _errorMessage = 'Caught Some Error';
+        return [];
       }
     }
   }
 
   Future<Item> _fetchItemFromAPI({@required String id}) async {
     try {
-      _response = await http.get(Constants.fetchItem(id));
+      _response = await http
+          .get(Constants.fetchItem(id))
+          .timeout(const Duration(seconds: 10));
 
       // get request of url returns json object which needs to be converted from string
       Map<String, dynamic> item = jsonDecode(_response.body);
@@ -95,6 +106,12 @@ class APIService extends GetxService {
         time: item['time'],
         score: item['score'],
       );
+      // Exception raised when server times out
+    } on TimeoutException catch (e) {
+      _isError = true;
+      _errorMessage = 'Server timedout';
+      return Future.error(e);
+      // exception raised on socket exception
     } on SocketException catch (e) {
       _isError = true;
       _errorMessage = 'There are issues with connectivity';
