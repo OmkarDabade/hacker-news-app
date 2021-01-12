@@ -8,15 +8,26 @@ import 'package:hackernews/Models/Item.dart';
 class StoryView extends GetView<StoryViewController> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        body: Column(
-          children: [_appBar(), _storiesList()],
+    return WillPopScope(
+      onWillPop: () async {
+        if (controller.pageTitle == PageTitle.topStories) {
+          await controller.closeServices();
+          return true;
+        } else {
+          controller.loadTempItems();
+          return false;
+        }
+      },
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          body: Column(
+            children: [_appBar(), _storiesList()],
+          ),
+          extendBody: true,
+          bottomNavigationBar: _lazyLoader(context),
+          floatingActionButton: _fab(),
         ),
-        extendBody: true,
-        bottomNavigationBar: _lazyLoader(context),
-        floatingActionButton: _fab(),
       ),
     );
   }
@@ -270,7 +281,7 @@ class StoryView extends GetView<StoryViewController> {
             label: PageTitle.topStories,
             labelBackgroundColor: Colors.black45,
             backgroundColor: Colors.green,
-            onTap: controller.loadNewStories,
+            onTap: controller.loadTempItems,
           ),
           SpeedDialChild(
             child: Icon(Icons.history),

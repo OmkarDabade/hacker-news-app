@@ -10,9 +10,13 @@ import 'package:http/http.dart' as http;
 
 class APIService extends GetxService {
   // Variables to control logic
-  int _lastIdCount;
-  Iterable _storyIds;
+  int _lastIdCount, i;
+  List _storyIds;
+  Map<String, dynamic> _tempMap;
   http.Response _response;
+  http.Client _client;
+  List<Item> _itemList;
+  Item _tempItem;
 
   // variables to control UI
   bool _isError;
@@ -22,13 +26,16 @@ class APIService extends GetxService {
   bool get isError => _isError;
   String get errorMessage => _errorMessage;
 
-  // Called when service is put in memory for first time
-  @override
-  void onInit() {
+  Future<APIService> initService() async {
     _isError = false;
     _errorMessage = '';
-    super.onInit();
+    _client = http.Client();
+    _itemList = [];
+
+    return this;
   }
+
+  void closeService() => _client?.close();
 
   Future<List<Item>> getTopStories(
       {@required int count, bool reload = false}) async {
@@ -41,9 +48,9 @@ class APIService extends GetxService {
       _lastIdCount = 0;
       try {
         // fetch items from API
-        _response = await http
+        _response = await _client
             .get(Constants.fetchtopStoriesURL)
-            .timeout(const Duration(seconds: 10));
+            .timeout(const Duration(seconds: 8));
 
         _storyIds = jsonDecode(_response.body);
       } on TimeoutException {
@@ -55,71 +62,86 @@ class APIService extends GetxService {
         _errorMessage = 'There are issues with connectivity';
         return [];
       } catch (e) {
+        print('APIService:' + e.toString());
         _isError = true;
         _errorMessage = 'Caught Some Error';
         return [];
       }
 
+      for (i = 0; i < count; i++) {
+        _tempItem = await _fetchItemFromAPI(id: '${_storyIds[i]}');
+        if (_isError)
+          break;
+        else
+          _itemList.add(_tempItem);
+      }
+      if (_isError) return [];
+
       // store count of previous fetched items so that next time this items will not be be fetched
       _lastIdCount = count;
-      try {
-        return Future.wait<Item>(
-            _storyIds.take(count).map((id) => _fetchItemFromAPI(id: '$id')),
-            eagerError: true);
-      } on Error {
-        if (!_isError) _isError = true;
-        if (_errorMessage == '') _errorMessage = 'Caught Some Error';
-        return [];
-      }
+      return _itemList;
     } else {
-      // add this items to previously fetched items and increase count value
-      _lastIdCount += count;
-      try {
-        return Future.wait<Item>(
-            _storyIds
-                .skip(_lastIdCount - count)
-                .take(count)
-                .map((id) => _fetchItemFromAPI(id: '$id')),
-            eagerError: true);
-      } on Error {
-        if (!_isError) _isError = true;
-        if (_errorMessage == '') _errorMessage = 'Caught Some Error';
-        return [];
+      for (i = _lastIdCount; i < _lastIdCount + count; i++) {
+        _tempItem = await _fetchItemFromAPI(id: '${_storyIds[i]}');
+        if (_isError)
+          break;
+        else
+          _itemList.add(_tempItem);
       }
+      if (_isError) return [];
+
+      // store count of previous fetched items so that next time this items will not be be fetched
+      _lastIdCount += count;
+      return _itemList;
+
+      // try {
+      //   return Future.wait<Item>(
+      //       _storyIds
+      //           .skip(_lastIdCount - count)
+      //           .take(count)
+      //           .map((id) => _fetchItemFromAPI(id: '$id')),
+      //       eagerError: true);
+      // } on Error {
+      //   _lastIdCount -= count;
+      //   if (!_isError.value) _isError.value = true;
+      //   if (_errorMessage == '') _errorMessage = 'Caught Some Error';
+      //   return [];
+      // }
     }
   }
 
   Future<Item> _fetchItemFromAPI({@required String id}) async {
     try {
-      _response = await http
+      _response = await _client
           .get(Constants.fetchItem(id))
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 8));
 
       // get request of url returns json object which needs to be converted from string
-      Map<String, dynamic> item = jsonDecode(_response.body);
+      _tempMap = jsonDecode(_response.body);
       return Item(
-        id: item['id'],
-        title: item['title'],
-        url: item['url'],
-        author: item['by'],
-        kids: item['kids'] ?? [],
-        time: item['time'],
-        score: item['score'],
+        id: _tempMap['id'],
+        title: _tempMap['title'],
+        url: _tempMap['url'],
+        author: _tempMap['by'],
+        kids: _tempMap['kids'] ?? [],
+        time: _tempMap['time'],
+        score: _tempMap['score'],
       );
       // Exception raised when server times out
-    } on TimeoutException catch (e) {
+    } on TimeoutException {
       _isError = true;
       _errorMessage = 'Server timedout';
-      return Future.error(e);
+      return null;
       // exception raised on socket exception
-    } on SocketException catch (e) {
+    } on SocketException {
       _isError = true;
       _errorMessage = 'There are issues with connectivity';
-      return Future.error(e);
+      return null;
+      // return Future.error(e);
     } catch (e) {
       _isError = true;
       _errorMessage = 'Caught Some Error';
-      return Future.error(e);
+      return null;
     }
   }
 }

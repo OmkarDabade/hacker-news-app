@@ -16,6 +16,7 @@ dependencies:
   hive:
   url_launcher:
   hive_flutter:
+  connectivity:
   flutter_speed_dial:
   cupertino_icons: ^1.0.0
 

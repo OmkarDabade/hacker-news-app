@@ -20,18 +20,20 @@ class StorageService extends GetxService {
   bool get isError => _isError.value;
   String get errorMessage => _errorMessage;
 
-  @override
-  onInit() {
+  Future<StorageService> initService() async {
     _isLoaded = false;
     _isError.value = false;
     _errorMessage = '';
-    super.onInit();
+    _isLoaded = false;
+
+    await loadItems();
+    return this;
   }
+
+  Future<void> closeService() async => await _storageBox?.close();
 
   bool isItemSaved(int key) =>
       _storageBox != null ? _storageBox.containsKey(key) : false;
-
-  Future<void> closeService() async => await _storageBox?.close();
 
   // load items from Hive box which is stored locally to device
   Future<void> loadItems() async {
@@ -44,7 +46,7 @@ class StorageService extends GetxService {
 
     // if data is not loaded then load data
     try {
-      _storageBox = await Hive.openBox<Item>('reminderBox');
+      _storageBox = await Hive.openBox<Item>('storageBox');
       _itemList = <Item>[];
 
       if (_storageBox.isNotEmpty) {
@@ -74,7 +76,10 @@ class StorageService extends GetxService {
     if (isItemSaved(item.id))
       return;
     else {
-      if (_storageBox.isEmpty) _errorMessage = '';
+      if (_storageBox.isEmpty) {
+        _errorMessage = '';
+        _isError.value = false;
+      }
       await _storageBox.put(item.id, item);
       _itemList.add(item);
     }
@@ -87,6 +92,12 @@ class StorageService extends GetxService {
     else {
       _itemList.removeWhere((element) => element.id == id);
       await _storageBox.delete(id);
+
+      if (_storageBox.isEmpty) {
+        _errorMessage =
+            'No favourites set\nPlease select your favourite url in Top Stories';
+        _isError.value = false;
+      }
     }
   }
 }

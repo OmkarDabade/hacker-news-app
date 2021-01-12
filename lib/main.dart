@@ -14,6 +14,7 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter<Item>(ItemAdapter());
 
+  await initServices();
   runApp(HackerNews());
 }
 

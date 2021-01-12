@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hackernews/App/Constants.dart';
 import 'package:hackernews/Models/Item.dart';
@@ -16,15 +17,12 @@ class StoryViewController extends GetxController {
 
   // Custom getters to control UI
   bool get showLazyLoading => _showLazyLoading;
-
-  // bool get isError => _isError;
   bool get isLoading => _isLoading || _storageService.isLoading;
 
   bool get isHistoryAvailable => _historyItems.isEmpty;
   bool get isStorageError => _storageService.isError;
   bool get isAPIServiceError => _apiService.isError;
 
-  // String get errorMessage => _errorMessage;
   String get storageErrorMessage => _storageService.errorMessage;
   String get apiErrorMessage => _apiService.errorMessage;
 
@@ -34,7 +32,7 @@ class StoryViewController extends GetxController {
   // Variables to control Logic
   String _pageTitle;
   int maxLoadCount = 0;
-  List<Item> _currentViewItems, _historyItems;
+  List<Item> _currentViewItems, _historyItems, _tempItems;
   double lastScrollExtent = 0.0;
   Duration _tempDuration;
   ScrollController scrollController = ScrollController();
@@ -47,9 +45,6 @@ class StoryViewController extends GetxController {
   // Called when controller is initialised
   @override
   void onInit() async {
-    // Initialise API service
-    _apiService = APIService();
-
     // Initialise UI controlling variables
     _isLoading = true;
     _showLazyLoading = false;
@@ -57,11 +52,8 @@ class StoryViewController extends GetxController {
     _historyItems = [];
     _pageTitle = PageTitle.topStories;
 
-    // Update specific widgets in UI
+    // Update specific widgets in UI by passing id's
     update(['pageTitle', 'storiesList']);
-
-    // load locally stored data
-    await _storageService.loadItems();
 
     // Load top stories when app is started
     await _loadTopStories(reloadCompletely: true);
@@ -69,7 +61,7 @@ class StoryViewController extends GetxController {
     if (_currentViewItems != null) _isLoading = false;
     update(['pageTitle', 'storiesList']);
 
-    // Add listener to scroll controller
+    // Add listener to scroll controller to load new stories when reached at last item in list
     scrollController.addListener(() async {
       if (scrollController.position.pixels ==
               scrollController.position.maxScrollExtent &&
@@ -81,26 +73,51 @@ class StoryViewController extends GetxController {
 
         await _loadTopStories();
 
-        _showLazyLoading = false;
-        update(['storiesList', 'showLazyLoader']);
+        if (_apiService.isError) {
+          _showLazyLoading = false;
+          update(['showLazyLoader']);
+
+          Get.showSnackbar(GetBar(
+            title: 'Error',
+            message: _apiService.errorMessage,
+            margin: EdgeInsets.all(15.0),
+            duration: const Duration(seconds: 2),
+            borderRadius: 15.0,
+          ));
+        } else {
+          _showLazyLoading = false;
+          update(['storiesList', 'showLazyLoader']);
+        }
+
         scrollController.jumpTo(lastScrollExtent);
       }
     });
     super.onInit();
   }
 
-  @override
-  void onClose() async {
+  Future<void> closeServices() async {
     // Close services when app is closed
     await _storageService.closeService();
-    super.onClose();
+    _apiService.closeService();
   }
 
   // Reload new stories
   Future<void> reFetchStories() async {
     _currentViewItems = await _apiService.getTopStories(
         count: Constants.topStoriesCount, reload: true);
-    update(['storiesList']);
+
+    if (_apiService.isError) {
+      Get.showSnackbar(GetBar(
+        title: 'Error',
+        message: _apiService.errorMessage,
+        margin: EdgeInsets.all(15.0),
+        duration: const Duration(seconds: 2),
+        borderRadius: 15.0,
+      ));
+    } else {
+      _tempItems = _currentViewItems;
+      update(['storiesList']);
+    }
   }
 
   // open url in Webview/Browser of mobile
@@ -124,29 +141,26 @@ class StoryViewController extends GetxController {
     update(['pageTitle', 'storiesList']);
   }
 
-  void loadNewStories() async {
+  void loadTempItems() async {
     _isLoading = true;
 
     _pageTitle = PageTitle.topStories;
     update(['pageTitle', 'storiesList']);
 
-    await _loadTopStories(reloadCompletely: true);
+    _currentViewItems = _tempItems;
 
     if (_currentViewItems != null) _isLoading = false;
     update(['storiesList']);
   }
 
-  void addToHistory(Item item) {
-    _historyItems.add(item);
-    update(['historyItemCount']);
-  }
+  void addToHistory(Item item) => _historyItems.add(item);
 
   Future<void> _loadTopStories({bool reloadCompletely = false}) async {
     if (reloadCompletely)
-      _currentViewItems = await _apiService.getTopStories(
+      _tempItems = _currentViewItems = await _apiService.getTopStories(
           count: Constants.topStoriesCount, reload: reloadCompletely);
     else
-      _currentViewItems = _currentViewItems
+      _tempItems = _currentViewItems = _currentViewItems
           .followedBy(
               await _apiService.getTopStories(count: Constants.topStoriesCount))
           .map<Item>((e) => e)
