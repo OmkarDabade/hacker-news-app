@@ -12,7 +12,7 @@ class Constants {
       'https://hacker-news.firebaseio.com/v0/item/$id.json';
 }
 
-// PageTitles
+// Page Titles
 class PageTitle {
   static const String topStories = 'Top Stories';
   static const String history = 'History';
