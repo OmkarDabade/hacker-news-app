@@ -13,7 +13,7 @@ class InitialBindings extends Bindings {
 }
 
 Future<void> initServices() async {
-  //Injects an Instance of service in memory.
+  //Injects an Instance of service in memory
   await Get.putAsync<APIService>(() async => await APIService().initService());
   await Get.putAsync<StorageService>(
       () async => StorageService().initService());
