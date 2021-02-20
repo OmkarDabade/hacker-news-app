@@ -246,7 +246,7 @@ class StoryView extends GetView<StoryViewController> {
       id: 'showLazyLoader',
       builder: (c) => controller.showLazyLoading
           ? Theme(
-              isMaterialAppTheme: true,
+              // isMaterialAppTheme: true,
               data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
