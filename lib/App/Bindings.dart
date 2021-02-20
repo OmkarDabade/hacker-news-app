@@ -7,7 +7,7 @@ import 'package:hackernews/Services/StorageService.dart';
 class InitialBindings extends Bindings {
   @override
   void dependencies() {
-    // Creates a new Instance lazily from the builder() callback.
+    // Creates a new Instance lazily from the builder() callback of View.
     Get.lazyPut<StoryViewController>(() => StoryViewController());
   }
 }
