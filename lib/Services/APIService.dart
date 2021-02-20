@@ -105,7 +105,7 @@ class APIService extends GetxService {
       //   _lastIdCount -= count;
       //   if (!_isError.value) _isError.value = true;
       //   if (_errorMessage == '') _errorMessage = 'Caught Some Error';
-      //   return []
+      //   return [];
       // }
     }
   }
