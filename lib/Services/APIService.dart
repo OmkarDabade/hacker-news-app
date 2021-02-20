@@ -43,7 +43,7 @@ class APIService extends GetxService {
     _isError = false;
     _errorMessage = '';
 
-    // whether user wants to forcefully reload top stories
+    //whether user wants to forcefully reload top stories
     if (reload) {
       _lastIdCount = 0;
       try {
