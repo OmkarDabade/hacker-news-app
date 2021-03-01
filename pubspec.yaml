@@ -18,7 +18,7 @@ dependencies:
   hive_flutter:
   connectivity:
   flutter_speed_dial:
-  cupertino_icons: ^1.0.0
+  cupertino_icons:
 
 dev_dependencies:
   flutter_test:
