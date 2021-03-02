@@ -39,7 +39,7 @@ class APIService extends GetxService {
 
   Future<List<Item>> getTopStories(
       {@required int count, bool reload = false}) async {
-    // initialise variables to remove previous error data
+    // initialise variables to remove previous error data.
     _isError = false;
     _errorMessage = '';
 
