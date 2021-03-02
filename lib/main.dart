@@ -4,7 +4,6 @@ import 'package:hackernews/App/Bindings.dart';
 import 'package:hackernews/App/Routes.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
 import 'Models/Item.dart';
 
 void main() async {
